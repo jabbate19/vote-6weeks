@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>CSH Vote</title>
+    <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="/">Vote</a>
+        <div class="nav navbar-nav ml-auto">
+          <div class="navbar-user">
+            <img src="https://profiles.csh.rit.edu/image/{{ .Username }}" />
+            <span class="text-light">{{ .FullName }}</span>
+            <!-- TODO: logout button -->
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container main p-5">
+      <h2>Create Poll</h2>
+      <form action="/create" method="POST">
+        <div class="form-group">
+          <input
+            type="text"
+            class="form-control"
+            name="shortDescription"
+            placeholder="Short Description"
+          />
+        </div>
+        <div class="form-group">
+          <input
+            type="text"
+            name="longDescription"
+            class="form-control"
+            placeholder="Long Description (Optional)"
+          />
+        </div>
+        <div class="form-group">
+          <select name="options" class="form-control">
+            <option value="pass_fail" selected>Pass/Fail</option>
+            <option value="pass-fail-conditional">
+              Pass/Fail or Conditional
+            </option>
+            <option value="fail-conditional">Fail/Conditional</option>
+          </select>
+        </div>
+        <input type="submit" class="btn btn-primary" value="Create" />
+      </form>
+    </div>
+  </body>
+</html>

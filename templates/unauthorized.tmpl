@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>CSH Vote</title>
+    <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" />
+    <style>
+      #lockdown {
+        width: 20%;
+        height: auto;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="/">Vote</a>
+        <div class="nav navbar-nav ml-auto">
+          <div class="navbar-user">
+            <img src="https://profiles.csh.rit.edu/image/{{ .Username }}" />
+            <span class="text-light">{{ .FullName }}</span>
+            <!-- TODO: logout button -->
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div style="text-align: center; font-size: 1.2rem;" class="main p-5 error-page align-center">
+      <img id="lockdown" src="/static/material_lock.svg" alt="Attention!" />
+      <br />
+      <h2>You're not authorized to vote!</h2>
+      <p>
+        It looks like you're either not marked as active, or you're on co-op
+        right now
+      </p>
+      <p>
+        If you think this is in error, please contact the Evaluations director
+        or an RTP
+      </p>
+    </div>
+  </body>
+</html>

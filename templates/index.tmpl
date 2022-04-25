@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>CSH Vote</title>
+    <link
+      rel="stylesheet"
+      href="https://themeswitcher.csh.rit.edu/api/get"
+      media="screen"
+    />
+    <style>
+      ul {
+        list-style: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="/">Vote</a>
+        <div class="nav navbar-nav ml-auto">
+          <div class="navbar-user">
+            <img src="https://profiles.csh.rit.edu/image/{{ .Username }}" />
+            <span class="text-light">{{ .FullName }}</span>
+            <!-- TODO: logout button -->
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container main p-5">
+      <h2>
+        <div class="d-inline">Active Polls</div>
+        <div class="d-inline float-right">
+          <a class="btn btn-primary" role="button" href="/create">
+            Create Poll
+          </a>
+        </div>
+      </h2>
+      <br />
+      <div>
+        <ul class="list-group">
+          {{ range $i, $poll := .Polls }}
+          <li>
+            <a
+              class="list-group-item list-group-item-action"
+              href="/poll/{{ $poll.Id }}"
+            >
+              <span style="font-size: 1.1rem">{{
+                $poll.ShortDescription
+              }}</span>
+              
+              <span><i>(created by {{ $poll.CreatedBy }})</i></span>
+            </a>
+          </li>
+          {{
+            end
+          }}
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"sort"
 	"time"
 
 	csh_auth "github.com/computersciencehouse/csh-auth"
@@ -49,11 +50,32 @@ func main() {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		sort.Slice(polls, func(i, j int) bool {
+			return polls[i].Id > polls[j].Id
+		})
+
+		closedPolls, err := database.GetClosedVotedPolls(claims.UserInfo.Username)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		ownedPolls, err := database.GetClosedOwnedPolls(claims.UserInfo.Username)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		closedPolls = append(closedPolls, ownedPolls...)
+
+		sort.Slice(closedPolls, func(i, j int) bool {
+			return closedPolls[i].Id > closedPolls[j].Id
+		})
+		closedPolls = uniquePolls(closedPolls)
 
 		c.HTML(200, "index.tmpl", gin.H{
-			"Polls":    polls,
-			"Username": claims.UserInfo.Username,
-			"FullName": claims.UserInfo.FullName,
+			"Polls":       polls,
+			"ClosedPolls": closedPolls,
+			"Username":    claims.UserInfo.Username,
+			"FullName":    claims.UserInfo.FullName,
 		})
 	}))
 
@@ -109,7 +131,7 @@ func main() {
 		}
 
 		if !poll.Open {
-			c.Redirect(302, "/result/"+poll.Id)
+			c.Redirect(302, "/results/"+poll.Id)
 			return
 		}
 
@@ -119,7 +141,7 @@ func main() {
 			return
 		}
 		if hasVoted {
-			c.Redirect(302, "/result/"+poll.Id)
+			c.Redirect(302, "/results/"+poll.Id)
 			return
 		}
 
@@ -147,8 +169,8 @@ func main() {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		if hasVoted {
-			c.Redirect(302, "/result/"+poll.Id)
+		if hasVoted || !poll.Open {
+			c.Redirect(302, "/results/"+poll.Id)
 			return
 		}
 
@@ -166,10 +188,10 @@ func main() {
 		}
 		database.CastVote(vote)
 
-		c.Redirect(302, "/result/"+poll.Id)
+		c.Redirect(302, "/results/"+poll.Id)
 	}))
 
-	r.GET("/result/:id", csh.AuthWrapper(func(c *gin.Context) {
+	r.GET("/results/:id", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
 
@@ -219,7 +241,7 @@ func main() {
 			return
 		}
 
-		c.Redirect(302, "/result/"+poll.Id)
+		c.Redirect(302, "/results/"+poll.Id)
 	}))
 
 	r.Run()
@@ -244,4 +266,23 @@ func canVote(groups []string) bool {
 	} else {
 		return active && !spring_coop
 	}
+}
+
+func uniquePolls(polls []*database.Poll) []*database.Poll {
+	var unique []*database.Poll
+	for _, poll := range polls {
+		if !containsPoll(unique, poll) {
+			unique = append(unique, poll)
+		}
+	}
+	return unique
+}
+
+func containsPoll(polls []*database.Poll, poll *database.Poll) bool {
+	for _, p := range polls {
+		if p.Id == poll.Id {
+			return true
+		}
+	}
+	return false
 }

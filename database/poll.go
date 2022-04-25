@@ -79,6 +79,66 @@ func GetOpenPolls() ([]*Poll, error) {
 	return polls, nil
 }
 
+func GetClosedOwnedPolls(userId string) ([]*Poll, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := Client.Database("vote").Collection("polls").Find(ctx, map[string]interface{}{"createdBy": userId, "open": false})
+	if err != nil {
+		return nil, err
+	}
+
+	var polls []*Poll
+	cursor.All(ctx, &polls)
+
+	return polls, nil
+}
+
+func GetClosedVotedPolls(userId string) ([]*Poll, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+		{{
+			"$match", bson.D{
+				{"userId", userId},
+			},
+		}},
+		{{
+			"$lookup", bson.D{
+				{"from", "polls"},
+				{"localField", "pollId"},
+				{"foreignField", "_id"},
+				{"as", "polls"},
+			},
+		}},
+		{{
+			"$unwind", bson.D{
+				{"path", "$polls"},
+				{"preserveNullAndEmptyArrays", false},
+			},
+		}},
+		{{
+			"$replaceRoot", bson.D{
+				{"newRoot", "$polls"},
+			},
+		}},
+		{{
+			"$match", bson.D{
+				{"open", false},
+			},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var polls []*Poll
+	cursor.All(ctx, &polls)
+
+	return polls, nil
+}
+
 func (poll *Poll) GetResult() (map[string]int, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()

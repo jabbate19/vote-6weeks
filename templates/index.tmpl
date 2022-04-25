@@ -57,6 +57,28 @@
           }}
         </ul>
       </div>
+      <br />
+      <h3>Closed Polls</h3>
+      <br />
+      <div>
+        <ul class="list-group">
+          {{ range $i, $poll := .ClosedPolls }}
+          <li>
+            <a
+              class="list-group-item list-group-item-action"
+              href="/results/{{ $poll.Id }}"
+            >
+              <span style="font-size: 1.1rem">{{
+                $poll.ShortDescription
+              }}</span>
+              
+              <span><i>(created by {{ $poll.CreatedBy }})</i></span>
+            </a>
+          </li>
+          {{
+            end
+          }}
+        </ul>
     </div>
   </body>
 </html>

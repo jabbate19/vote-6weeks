@@ -3,7 +3,12 @@
   <head>
     <title>CSH Vote</title>
     <!-- <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" /> -->
-    <link rel="stylesheet" href="https://assets.csh.rit.edu/csh-material-bootstrap/4.3.1/dist/csh-material-bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://assets.csh.rit.edu/csh-material-bootstrap/4.3.1/dist/csh-material-bootstrap.min.css"
+      media="screen"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       ul {
         list-style: none;
@@ -45,8 +50,10 @@
               <span style="font-size: 1.1rem">{{
                 $poll.ShortDescription
               }}</span>
-              
-              <span><i>(created by {{ $poll.CreatedBy }})</i></span>
+
+              <span
+                ><i>(created by {{ $poll.CreatedBy }})</i></span
+              >
             </a>
           </li>
           {{
@@ -68,14 +75,17 @@
               <span style="font-size: 1.1rem">{{
                 $poll.ShortDescription
               }}</span>
-              
-              <span><i>(created by {{ $poll.CreatedBy }})</i></span>
+
+              <span
+                ><i>(created by {{ $poll.CreatedBy }})</i></span
+              >
             </a>
           </li>
           {{
             end
           }}
         </ul>
+      </div>
     </div>
   </body>
 </html>

@@ -27,8 +27,8 @@ func main() {
 		os.Getenv("VOTE_JWT_SECRET"),
 		os.Getenv("VOTE_SECRET"),
 		os.Getenv("VOTE_HOST"),
-		os.Getenv("VOTE_HOST")+"auth/callback",
-		os.Getenv("VOTE_HOST")+"auth/login",
+		os.Getenv("VOTE_HOST")+"/auth/callback",
+		os.Getenv("VOTE_HOST")+"/auth/login",
 		[]string{"profile", "email", "groups"},
 	)
 
@@ -259,7 +259,7 @@ func main() {
 		c.Redirect(302, "/results/"+poll.Id)
 	}))
 
-	r.GET("/stream/:topic", broker.ServeHTTP)
+	r.GET("/stream/:topic", csh.AuthWrapper(broker.ServeHTTP))
 
 	go broker.Listen()
 

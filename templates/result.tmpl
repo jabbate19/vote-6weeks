@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <title>CSH Vote</title>
-    <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" />
+    <!-- <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" /> -->
+    <link rel="stylesheet" href="https://assets.csh.rit.edu/csh-material-bootstrap/4.3.1/dist/csh-material-bootstrap.min.css" />
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -27,9 +28,11 @@
       <br />
       <br />
 
-      <div>
+      <div id="results">
         {{ range $option, $count := .Results }}
-        <div style="font-size: 1.25rem; line-height: 1.25;">{{ $option }}: {{ $count }}</div>
+        <div id="{{ $option }}" style="font-size: 1.25rem; line-height: 1.25">
+          {{ $option }}: {{ $count }}
+        </div>
         <br />
         {{ end }}
       </div>
@@ -42,5 +45,24 @@
       </form>
       {{ end }}
     </div>
+    <script>
+      let eventSource = new EventSource("/stream/{{ .Id }}");
+
+      eventSource.addEventListener("{{ .Id }}", function (event) {
+        let data = JSON.parse(event.data);
+        for (let option in data) {
+          let count = data[option];
+          let element = document.getElementById(option);
+          if (element == null) {
+            let newElement = document.createElement("div");
+            newElement.id = option;
+            newElement.style = "font-size: 1.25rem; line-height: 1.25";
+            newElement.innerText = option + ": " + count;
+            document.getElementById("results").appendChild(newElement);
+          }
+          element.innerText = option + ": " + count;
+        }
+      });
+    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"sort"
@@ -8,6 +9,7 @@ import (
 
 	csh_auth "github.com/computersciencehouse/csh-auth"
 	"github.com/computersciencehouse/vote/database"
+	"github.com/computersciencehouse/vote/sse"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -16,6 +18,7 @@ func main() {
 	r := gin.Default()
 	r.StaticFS("/static", http.Dir("static"))
 	r.LoadHTMLGlob("templates/*")
+	broker := sse.NewBroker()
 
 	csh := csh_auth.CSHAuth{}
 	csh.Init(
@@ -188,6 +191,18 @@ func main() {
 		}
 		database.CastVote(vote)
 
+		if poll, err := database.GetPoll(c.Param("id")); err == nil {
+			if results, err := poll.GetResult(); err == nil {
+				if bytes, err := json.Marshal(results); err == nil {
+					broker.Notifier <- sse.NotificationEvent{
+						EventName: poll.Id,
+						Payload:   string(bytes),
+					}
+				}
+
+			}
+		}
+
 		c.Redirect(302, "/results/"+poll.Id)
 	}))
 
@@ -243,6 +258,10 @@ func main() {
 
 		c.Redirect(302, "/results/"+poll.Id)
 	}))
+
+	r.GET("/stream/:topic", broker.ServeHTTP)
+
+	go broker.Listen()
 
 	r.Run()
 }

@@ -25,7 +25,7 @@ func main() {
 		os.Getenv("VOTE_OIDC_ID"),
 		os.Getenv("VOTE_OIDC_SECRET"),
 		os.Getenv("VOTE_JWT_SECRET"),
-		os.Getenv("VOTE_SECRET"),
+		os.Getenv("VOTE_STATE"),
 		os.Getenv("VOTE_HOST"),
 		os.Getenv("VOTE_HOST")+"/auth/callback",
 		os.Getenv("VOTE_HOST")+"/auth/login",

@@ -183,6 +183,10 @@ func main() {
 			return
 		}
 
+		if !hasOption(poll, c.PostForm("option")) {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
+
 		vote := &database.Vote{
 			Id:     "",
 			PollId: pId,
@@ -300,6 +304,15 @@ func uniquePolls(polls []*database.Poll) []*database.Poll {
 func containsPoll(polls []*database.Poll, poll *database.Poll) bool {
 	for _, p := range polls {
 		if p.Id == poll.Id {
+			return true
+		}
+	}
+	return false
+}
+
+func hasOption(poll *database.Poll, option string) bool {
+	for _, opt := range poll.Options {
+		if opt == option {
 			return true
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	csh_auth "github.com/computersciencehouse/csh-auth"
@@ -109,6 +110,11 @@ func main() {
 			poll.Options = []string{"Pass", "Fail/Conditional", "Abstain"}
 		case "fail-conditional":
 			poll.Options = []string{"Fail", "Conditional", "Abstain"}
+		case "custom":
+			poll.Options = []string{}
+			for _, opt := range strings.Split(c.PostForm("customOptions"), ",") {
+				poll.Options = append(poll.Options, strings.TrimSpace(opt))
+			}
 		case "pass-fail":
 		default:
 			poll.Options = []string{"Pass", "Fail", "Abstain"}

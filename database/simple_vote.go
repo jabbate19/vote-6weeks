@@ -14,6 +14,11 @@ type SimpleVote struct {
 	Option string             `bson:"option"`
 }
 
+type SimpleResult struct {
+	Option string `bson:"_id"`
+	Count  int    `bson:"count"`
+}
+
 func CastSimpleVote(vote *SimpleVote) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()

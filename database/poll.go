@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,11 +20,6 @@ type Poll struct {
 	Open             bool     `bson:"open"`
 	Hidden           bool     `bson:"hidden"`
 	AllowWriteIns    bool     `bson:"writeins"`
-}
-
-type Result struct {
-	Option string `bson:"_id"`
-	Count  int    `bson:"count"`
 }
 
 const POLL_TYPE_SIMPLE = "simple"
@@ -149,33 +145,111 @@ func (poll *Poll) GetResult() (map[string]int, error) {
 	defer cancel()
 
 	pollId, _ := primitive.ObjectIDFromHex(poll.Id)
+	finalResult := make(map[string]int)
 
-	cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
-		{{
-			"$match", bson.D{
-				{"pollId", pollId},
-			},
-		}},
-		{{
-			"$group", bson.D{
-				{"_id", "$option"},
-				{"count", bson.D{
-					{"$sum", 1},
-				}},
-			},
-		}},
-	})
-	if err != nil {
-		return nil, err
+	if poll.VoteType == POLL_TYPE_SIMPLE {
+		cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+			{{
+				"$match", bson.D{
+					{"pollId", pollId},
+				},
+			}},
+			{{
+				"$group", bson.D{
+					{"_id", "$option"},
+					{"count", bson.D{
+						{"$sum", 1},
+					}},
+				},
+			}},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var results []SimpleResult
+		cursor.All(ctx, &results)
+
+		for _, r := range results {
+			finalResult[r.Option] = r.Count
+		}
+		return finalResult, nil
+	} else if poll.VoteType == POLL_TYPE_RANKED {
+		cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+			{{
+				"$match", bson.D{
+					{"pollId", pollId},
+				},
+			}},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var votes []RankedVote
+		cursor.All(ctx, &votes)
+
+		voteCount := len(votes)
+
+		// ALRIGHT LETS GO INSTANT RUNOFF VOTE LOGIC GOES HERE
+		for {
+			// Create an empty result for counting at this iteration
+			results := make(map[string]int)
+			// Iterate through all cast votes
+			for _, vote := range votes {
+				// Create a list of the options in this vote and sort by preference
+				options := make([]string, 0, len(vote.Options))
+				for key := range vote.Options {
+					options = append(options, key)
+				}
+				sort.SliceStable(options, func(i, j int) bool {
+					return vote.Options[options[i]] < vote.Options[options[j]]
+				})
+
+				// Add a vote for the highest preference option
+				for _, option := range options {
+					// If that option has been eliminated, skip it and go to the next one
+					if containsKey(finalResult, option) {
+						continue
+					}
+					results[option] += 1
+					break
+				}
+			}
+
+			// Once we've gone through all votes, check if we have any options
+			// that have received more than half of the possible votes
+			for _, count := range results {
+				// If so, we're done
+				// This means we won't randomly mess with ties
+				if count*2 >= voteCount {
+					for k, c := range results {
+						finalResult[k] = c
+					}
+					return finalResult, nil
+				}
+			}
+			// If no option has won yet, find the option with the least votes and eliminate
+			// it, noting the number of votes it recieved at the time
+			options := make([]string, 0, len(finalResult))
+			for key := range results {
+				options = append(options, key)
+			}
+			sort.SliceStable(options, func(i, j int) bool {
+				return results[options[i]] < results[options[j]]
+			})
+
+			finalResult[options[len(options)-1]] = results[options[len(options)-1]]
+		}
 	}
+	return nil, nil
+}
 
-	var results []Result
-	cursor.All(ctx, &results)
-
-	result := make(map[string]int)
-	for _, r := range results {
-		result[r.Option] = r.Count
+func containsKey(arr map[string]int, val string) bool {
+	for key, _ := range arr {
+		if key == val {
+			return true
+		}
 	}
-
-	return result, nil
+	return false
 }

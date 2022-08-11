@@ -163,6 +163,7 @@ func main() {
 		// If the user can't vote, just show them results
 		if !canVote(claims.UserInfo.Groups) {
 			c.Redirect(302, "/results/"+poll.Id)
+			return
 		}
 
 		if !poll.Open {

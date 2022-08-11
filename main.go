@@ -130,6 +130,9 @@ func main() {
 			poll.Options = []string{}
 			for _, opt := range strings.Split(c.PostForm("customOptions"), ",") {
 				poll.Options = append(poll.Options, strings.TrimSpace(opt))
+				if !containsString(poll.Options, "Abstain") && (poll.VoteType == database.POLL_TYPE_SIMPLE) {
+					poll.Options = append(poll.Options, "Abstain")
+				}
 			}
 		case "pass-fail":
 		default:
@@ -398,6 +401,15 @@ func containsPoll(polls []*database.Poll, poll *database.Poll) bool {
 func hasOption(poll *database.Poll, option string) bool {
 	for _, opt := range poll.Options {
 		if opt == option {
+			return true
+		}
+	}
+	return false
+}
+
+func containsString(arr []string, val string) bool {
+	for _, a := range arr {
+		if a == val {
 			return true
 		}
 	}

@@ -14,6 +14,7 @@ type Poll struct {
 	CreatedBy        string   `bson:"createdBy"`
 	ShortDescription string   `bson:"shortDescription"`
 	LongDescription  string   `bson:"longDescription"`
+	VoteType         string   `bson:"voteType"`
 	Options          []string `bson:"options"`
 	Open             bool     `bson:"open"`
 	Hidden           bool     `bson:"hidden"`
@@ -24,6 +25,9 @@ type Result struct {
 	Option string `bson:"_id"`
 	Count  int    `bson:"count"`
 }
+
+const POLL_TYPE_SIMPLE = "simple"
+const POLL_TYPE_RANKED = "ranked"
 
 func GetPoll(id string) (*Poll, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)

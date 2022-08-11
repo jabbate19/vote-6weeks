@@ -7,14 +7,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Vote struct {
+type SimpleVote struct {
 	Id     string             `bson:"_id,omitempty"`
 	PollId primitive.ObjectID `bson:"pollId"`
 	UserId string             `bson:"userId"`
 	Option string             `bson:"option"`
 }
 
-func CastVote(vote *Vote) error {
+func CastVote(vote *SimpleVote) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 

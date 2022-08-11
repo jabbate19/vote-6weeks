@@ -23,3 +23,4 @@ VOTE_STATE=
 - [x] Custom vote options
 - [x] Write-in votes
 - [ ] Ranked choice voting
+- [ ] Show options that got no votes

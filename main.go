@@ -110,9 +110,13 @@ func main() {
 			CreatedBy:        claims.UserInfo.Username,
 			ShortDescription: c.PostForm("shortDescription"),
 			LongDescription:  c.PostForm("longDescription"),
+			VoteType:         database.POLL_TYPE_SIMPLE,
 			Open:             true,
 			Hidden:           false,
 			AllowWriteIns:    c.PostForm("allowWriteIn") == "true",
+		}
+		if c.PostForm("rankedChoice") == "true" {
+			poll.VoteType = database.POLL_TYPE_RANKED
 		}
 
 		switch c.PostForm("options") {
@@ -214,22 +218,27 @@ func main() {
 			return
 		}
 
-		vote := database.Vote{
-			Id:     "",
-			PollId: pId,
-			UserId: claims.UserInfo.Username,
-			Option: c.PostForm("option"),
-		}
+		if poll.VoteType == database.POLL_TYPE_SIMPLE {
+			vote := database.SimpleVote{
+				Id:     "",
+				PollId: pId,
+				UserId: claims.UserInfo.Username,
+				Option: c.PostForm("option"),
+			}
 
-		if hasOption(poll, c.PostForm("option")) {
-			vote.Option = c.PostForm("option")
-		} else if poll.AllowWriteIns && c.PostForm("option") == "writein" {
-			vote.Option = c.PostForm("writeinOption")
+			if hasOption(poll, c.PostForm("option")) {
+				vote.Option = c.PostForm("option")
+			} else if poll.AllowWriteIns && c.PostForm("option") == "writein" {
+				vote.Option = c.PostForm("writeinOption")
+			} else {
+				c.JSON(400, gin.H{"error": "Invalid Option"})
+				return
+			}
+			database.CastVote(&vote)
 		} else {
-			c.JSON(500, gin.H{"error": "Invalid Option"})
+			c.JSON(500, gin.H{"error": "Unknown Poll Type"})
 			return
 		}
-		database.CastVote(&vote)
 
 		if poll, err := database.GetPoll(c.Param("id")); err == nil {
 			if results, err := poll.GetResult(); err == nil {

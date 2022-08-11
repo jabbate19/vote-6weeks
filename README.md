@@ -6,7 +6,7 @@ Imagine this. You're a somehow still functioning student organization of compute
 Anyways, now we can vote online. It's cool, I guess? We have things such as:
  - **Server-side rendering**. That's right, this site (should) (mostly) work without JavaScript.
  - **Server Sent Events** for real-time vote results
- - **Limited voting options**. It's worse than Google Forms! (See To-Dos. I hope to change that someday(tm))
+ - **(Slightly less) limited voting options**. It's worse than Google Forms! (See To-Dos. All that's left now is ranked choice voting)
 
 ## Configuration
 You'll need to set up these values in your environment. Ask an RTP for OIDC credentials. A docker-compose file is provided for convenience. Otherwise, I trust you to figure it out!
@@ -20,6 +20,6 @@ VOTE_STATE=
 ```
 
 ## To-Dos
-- [ ] Custom vote options
-- [ ] Write-in votes
+- [x] Custom vote options
+- [x] Write-in votes
 - [ ] Ranked choice voting

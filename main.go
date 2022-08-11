@@ -191,22 +191,17 @@ func main() {
 			return
 		}
 
-		var vote database.Vote
+		vote := database.Vote{
+			Id:     "",
+			PollId: pId,
+			UserId: claims.UserInfo.Username,
+			Option: c.PostForm("option"),
+		}
 
 		if hasOption(poll, c.PostForm("option")) {
-			vote = database.Vote{
-				Id:     "",
-				PollId: pId,
-				UserId: claims.UserInfo.Username,
-				Option: c.PostForm("option"),
-			}
+			vote.Option = c.PostForm("option")
 		} else if poll.AllowWriteIns && c.PostForm("option") == "writein" {
-			vote = database.Vote{
-				Id:     "",
-				PollId: pId,
-				UserId: claims.UserInfo.Username,
-				Option: c.PostForm("writeinOption"),
-			}
+			vote.Option = c.PostForm("writeinOption")
 		} else {
 			c.JSON(500, gin.H{"error": "Invalid Option"})
 			return

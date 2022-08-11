@@ -170,6 +170,11 @@ func (poll *Poll) GetResult() (map[string]int, error) {
 		var results []SimpleResult
 		cursor.All(ctx, &results)
 
+		// Start by setting all the results to zero
+		for _, opt := range poll.Options {
+			finalResult[opt] = 0
+		}
+		// Overwrite those with given votes and add write-ins
 		for _, r := range results {
 			finalResult[r.Option] = r.Count
 		}

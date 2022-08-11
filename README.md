@@ -23,7 +23,6 @@ VOTE_STATE=
 - [x] Custom vote options
 - [x] Write-in votes
 - [x] Ranked choice voting
-- [ ] Show options that got no votes
-- [ ] Write-In Fuzzy Matching
+- [x] Show options that got no votes
 - [ ] Allow results to be hidden until a vote is closed
 - [ ] Don't let the user fuck it up

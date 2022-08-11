@@ -17,6 +17,7 @@ type Poll struct {
 	Options          []string `bson:"options"`
 	Open             bool     `bson:"open"`
 	Hidden           bool     `bson:"hidden"`
+	AllowWriteIns    bool     `bson:"writeins"`
 }
 
 type Result struct {

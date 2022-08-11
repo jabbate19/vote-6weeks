@@ -25,8 +25,8 @@ services:
       - "MONGO_INITDB_ROOT_PASSWORD=c1f66aac6b4fafbef3c659371b8a50ed"
     volumes:
       - type: volume
-        source: mongo
+        source: mongodb
         target: /data/db/
 
 volumes:
-  mongo:
+  mongodb:

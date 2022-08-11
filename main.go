@@ -103,6 +103,7 @@ func main() {
 			LongDescription:  c.PostForm("longDescription"),
 			Open:             true,
 			Hidden:           false,
+			AllowWriteIns:    c.PostForm("allowWriteIn") == "true",
 		}
 
 		switch c.PostForm("options") {
@@ -159,6 +160,7 @@ func main() {
 			"ShortDescription": poll.ShortDescription,
 			"LongDescription":  poll.LongDescription,
 			"Options":          poll.Options,
+			"AllowWriteIns":    poll.AllowWriteIns,
 			"Username":         claims.UserInfo.Username,
 			"FullName":         claims.UserInfo.FullName,
 		})
@@ -189,17 +191,27 @@ func main() {
 			return
 		}
 
-		if !hasOption(poll, c.PostForm("option")) {
-			c.JSON(500, gin.H{"error": err.Error()})
-		}
+		var vote database.Vote
 
-		vote := &database.Vote{
-			Id:     "",
-			PollId: pId,
-			UserId: claims.UserInfo.Username,
-			Option: c.PostForm("option"),
+		if hasOption(poll, c.PostForm("option")) {
+			vote = database.Vote{
+				Id:     "",
+				PollId: pId,
+				UserId: claims.UserInfo.Username,
+				Option: c.PostForm("option"),
+			}
+		} else if poll.AllowWriteIns && c.PostForm("option") == "writein" {
+			vote = database.Vote{
+				Id:     "",
+				PollId: pId,
+				UserId: claims.UserInfo.Username,
+				Option: c.PostForm("writeinOption"),
+			}
+		} else {
+			c.JSON(500, gin.H{"error": "Invalid Option"})
+			return
 		}
-		database.CastVote(vote)
+		database.CastVote(&vote)
 
 		if poll, err := database.GetPoll(c.Param("id")); err == nil {
 			if results, err := poll.GetResult(); err == nil {

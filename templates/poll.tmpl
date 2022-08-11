@@ -5,6 +5,11 @@
     <!-- <link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" /> -->
     <link rel="stylesheet" href="https://assets.csh.rit.edu/csh-material-bootstrap/4.3.1/dist/csh-material-bootstrap.min.css" media="screen"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      input[type='number']{
+        width: 32px;
+      } 
+    </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -25,15 +30,20 @@
       {{ if .LongDescription }}
       <h4>{{ .LongDescription }}</h4>
       {{ end }}
+      {{ if eq .PollType "ranked" }}
+      <p>This is a Ranked Choice vote. Rank the candidates in order of your preference. 1 is most preferred, and {{ .RankedMax }} is least perferred. You may leave an option blank
+      if you do not prefer it at all.</p>
+      {{ end }}
 
       <br />
       <br />
 
       <form action="/poll/{{ .Id }}" method="POST">
+      {{ if eq .PollType "simple" }}
         {{ range $i, $option := .Options }}
         <div class="form-check">
           <input class="form-check-input" type="radio" name="option" value="{{ $option }}" />
-          <label style="font-size: 1.25rem; line-height: 1.25;" class="form-check-label" for="{{ $option }}">{{ $option }}</label>
+          <label style="font-size: 1.25rem; line-height: 1.25; padding-left: 4px;" class="form-check-label" for="{{ $option }}">{{ $option }}</label>
         </div>
         <br />
         {{ end }}
@@ -44,11 +54,49 @@
             type="text"
             name="writeinOption"
             class="form-control"
-            style="height: 1.5em;"
+            style="height: 1.5em; padding-left: 4px;"
             placeholder="Write-In"
           />
         </div>
         {{ end }}
+      {{ end }}
+
+      {{ if eq .PollType "ranked" }}
+        {{ $rankedMax := .RankedMax }}
+        {{ range $i, $option := .Options }}
+        <div class="form-check" style="display: flex;">
+          <input
+            type="number"
+            name="{{ $option }}"
+            class="form-control"
+            style="height: 1.5em;"
+            min="0"
+            max="{{ $rankedMax }}"
+          />
+          <label style="font-size: 1.25rem; line-height: 1.25; padding-left: 12px;" class="form-check-label" for="{{ $option }}">{{ $option }}</label>
+        </div>
+        <br />
+        {{ end }}
+        {{ if .AllowWriteIns }}
+        <div class="form-check" style="display: flex;">
+          <input
+            type="number"
+            name="writein"
+            class="form-control"
+            style="height: 1.5em;"
+            min="0"
+            max="{{ $rankedMax }}"
+          />
+          <input
+            type="text"
+            name="writeinOption"
+            class="form-control"
+            style="height: 1.5em; padding-left: 12px;"
+            placeholder="Write-In"
+          />
+        </div>
+        {{ end }}
+      {{ end }}
         <br />
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>

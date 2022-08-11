@@ -7,14 +7,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type SimpleVote struct {
-	Id     string             `bson:"_id,omitempty"`
-	PollId primitive.ObjectID `bson:"pollId"`
-	UserId string             `bson:"userId"`
-	Option string             `bson:"option"`
+type RankedVote struct {
+	Id      string             `bson:"_id,omitempty"`
+	PollId  primitive.ObjectID `bson:"pollId"`
+	UserId  string             `bson:"userId"`
+	Options map[string]int     `bson:"option"`
 }
 
-func CastSimpleVote(vote *SimpleVote) error {
+func CastRankedVote(vote *RankedVote) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 

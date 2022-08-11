@@ -11,7 +11,7 @@ type RankedVote struct {
 	Id      string             `bson:"_id,omitempty"`
 	PollId  primitive.ObjectID `bson:"pollId"`
 	UserId  string             `bson:"userId"`
-	Options map[string]int     `bson:"option"`
+	Options map[string]int     `bson:"options"`
 }
 
 func CastRankedVote(vote *RankedVote) error {

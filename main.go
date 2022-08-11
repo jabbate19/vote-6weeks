@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -242,6 +243,34 @@ func main() {
 				return
 			}
 			database.CastSimpleVote(&vote)
+		} else if poll.VoteType == database.POLL_TYPE_RANKED {
+			vote := database.RankedVote{
+				Id:      "",
+				PollId:  pId,
+				UserId:  claims.UserInfo.Username,
+				Options: make(map[string]int),
+			}
+			for _, opt := range poll.Options {
+				if c.PostForm(opt) != "" {
+					rank, err := strconv.Atoi(c.PostForm(opt))
+					if err != nil {
+						c.JSON(500, gin.H{"error": "error parsing votes"})
+					}
+					if rank > 0 {
+						vote.Options[opt] = rank
+					}
+				}
+			}
+			if c.PostForm("writeinOption") != "" && c.PostForm("writein") != "" {
+				rank, err := strconv.Atoi(c.PostForm("writein"))
+				if err != nil {
+					c.JSON(500, gin.H{"error": "error parsing votes"})
+				}
+				if rank > 0 {
+					vote.Options[c.PostForm("writeinOption")] = rank
+				}
+			}
+			database.CastRankedVote(&vote)
 		} else {
 			c.JSON(500, gin.H{"error": "Unknown Poll Type"})
 			return

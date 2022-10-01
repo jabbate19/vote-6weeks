@@ -23,7 +23,7 @@ func CastSimpleVote(vote *SimpleVote) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
-	_, err := Client.Database("vote").Collection("votes").InsertOne(ctx, vote)
+	_, err := Client.Database("6weeks").Collection("votes").InsertOne(ctx, vote)
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ func GetPoll(id string) (*Poll, error) {
 
 	objId, _ := primitive.ObjectIDFromHex(id)
 	var poll Poll
-	if err := Client.Database("vote").Collection("polls").FindOne(ctx, map[string]interface{}{"_id": objId}).Decode(&poll); err != nil {
+	if err := Client.Database("6weeks").Collection("polls").FindOne(ctx, map[string]interface{}{"_id": objId}).Decode(&poll); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func (poll *Poll) Close() error {
 
 	objId, _ := primitive.ObjectIDFromHex(poll.Id)
 
-	_, err := Client.Database("vote").Collection("polls").UpdateOne(ctx, map[string]interface{}{"_id": objId}, map[string]interface{}{"$set": map[string]interface{}{"open": false}})
+	_, err := Client.Database("6weeks").Collection("polls").UpdateOne(ctx, map[string]interface{}{"_id": objId}, map[string]interface{}{"$set": map[string]interface{}{"open": false}})
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func CreatePoll(poll *Poll) (string, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
-	result, err := Client.Database("vote").Collection("polls").InsertOne(ctx, poll)
+	result, err := Client.Database("6weeks").Collection("polls").InsertOne(ctx, poll)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +68,7 @@ func GetOpenPolls() ([]*Poll, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := Client.Database("vote").Collection("polls").Find(ctx, map[string]interface{}{"open": true})
+	cursor, err := Client.Database("6weeks").Collection("polls").Find(ctx, map[string]interface{}{"open": true})
 	if err != nil {
 		return nil, err
 
@@ -84,7 +84,7 @@ func GetClosedOwnedPolls(userId string) ([]*Poll, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := Client.Database("vote").Collection("polls").Find(ctx, map[string]interface{}{"createdBy": userId, "open": false})
+	cursor, err := Client.Database("6weeks").Collection("polls").Find(ctx, map[string]interface{}{"createdBy": userId, "open": false})
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func GetClosedVotedPolls(userId string) ([]*Poll, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+	cursor, err := Client.Database("6weeks").Collection("votes").Aggregate(ctx, mongo.Pipeline{
 		{{
 			"$match", bson.D{
 				{"userId", userId},
@@ -148,7 +148,7 @@ func (poll *Poll) GetResult() (map[string]int, error) {
 	finalResult := make(map[string]int)
 
 	if poll.VoteType == POLL_TYPE_SIMPLE {
-		cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+		cursor, err := Client.Database("6weeks").Collection("votes").Aggregate(ctx, mongo.Pipeline{
 			{{
 				"$match", bson.D{
 					{"pollId", pollId},
@@ -180,7 +180,7 @@ func (poll *Poll) GetResult() (map[string]int, error) {
 		}
 		return finalResult, nil
 	} else if poll.VoteType == POLL_TYPE_RANKED {
-		cursor, err := Client.Database("vote").Collection("votes").Aggregate(ctx, mongo.Pipeline{
+		cursor, err := Client.Database("6weeks").Collection("votes").Aggregate(ctx, mongo.Pipeline{
 			{{
 				"$match", bson.D{
 					{"pollId", pollId},

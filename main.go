@@ -105,7 +105,7 @@ func main() {
 	r.POST("/create", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
-		if !canVote(claims.UserInfo.Username) {
+		if claims.UserInfo.Username != "skyz" {
 			c.HTML(403, "unauthorized.tmpl", gin.H{
 				"Username": claims.UserInfo.Username,
 				"FullName": claims.UserInfo.FullName,
@@ -419,6 +419,8 @@ func canVote(username string) bool {
 		"philup",
 		"cherry",
 		"mount",
+		"geo",
+		"garousome",
 	}
 	for _, b := range elligible {
 		if b == username {

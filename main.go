@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	csh_auth "github.com/computersciencehouse/csh-auth"
 	"github.com/computersciencehouse/vote/database"
@@ -44,6 +43,13 @@ func main() {
 		claims := cl.(csh_auth.CSHClaims)
 		// This is intentionally left unprotected
 		// A user may be unable to vote but should still be able to see a list of polls
+		if !canVote(claims.UserInfo.Username) {
+			c.HTML(403, "unauthorized.tmpl", gin.H{
+				"Username": claims.UserInfo.Username,
+				"FullName": claims.UserInfo.FullName,
+			})
+			return
+		}
 
 		polls, err := database.GetOpenPolls()
 		if err != nil {
@@ -82,7 +88,7 @@ func main() {
 	r.GET("/create", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
-		if !canVote(claims.UserInfo.Groups) {
+		if !canVote(claims.UserInfo.Username) {
 			c.HTML(403, "unauthorized.tmpl", gin.H{
 				"Username": claims.UserInfo.Username,
 				"FullName": claims.UserInfo.FullName,
@@ -99,7 +105,7 @@ func main() {
 	r.POST("/create", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
-		if !canVote(claims.UserInfo.Groups) {
+		if !canVote(claims.UserInfo.Username) {
 			c.HTML(403, "unauthorized.tmpl", gin.H{
 				"Username": claims.UserInfo.Username,
 				"FullName": claims.UserInfo.FullName,
@@ -151,6 +157,13 @@ func main() {
 	r.GET("/poll/:id", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
+		if !canVote(claims.UserInfo.Username) {
+			c.HTML(403, "unauthorized.tmpl", gin.H{
+				"Username": claims.UserInfo.Username,
+				"FullName": claims.UserInfo.FullName,
+			})
+			return
+		}
 		// This is intentionally left unprotected
 		// We will check if a user can vote and redirect them to results if not later
 
@@ -161,7 +174,7 @@ func main() {
 		}
 
 		// If the user can't vote, just show them results
-		if !canVote(claims.UserInfo.Groups) {
+		if !canVote(claims.UserInfo.Username) {
 			c.Redirect(302, "/results/"+poll.Id)
 			return
 		}
@@ -200,7 +213,7 @@ func main() {
 	r.POST("/poll/:id", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
-		if !canVote(claims.UserInfo.Groups) {
+		if !canVote(claims.UserInfo.Username) {
 			c.HTML(403, "unauthorized.tmpl", gin.H{
 				"Username": claims.UserInfo.Username,
 				"FullName": claims.UserInfo.FullName,
@@ -298,6 +311,13 @@ func main() {
 	r.GET("/results/:id", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
+		if !canVote(claims.UserInfo.Username) {
+			c.HTML(403, "unauthorized.tmpl", gin.H{
+				"Username": claims.UserInfo.Username,
+				"FullName": claims.UserInfo.FullName,
+			})
+			return
+		}
 		// This is intentionally left unprotected
 		// A user may be unable to vote but still interested in the results of a poll
 
@@ -328,6 +348,13 @@ func main() {
 	r.POST("/poll/:id/close", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")
 		claims := cl.(csh_auth.CSHClaims)
+		if !canVote(claims.UserInfo.Username) {
+			c.HTML(403, "unauthorized.tmpl", gin.H{
+				"Username": claims.UserInfo.Username,
+				"FullName": claims.UserInfo.FullName,
+			})
+			return
+		}
 		// This is intentionally left unprotected
 		// A user should be able to close their own polls, regardless of if they can vote
 
@@ -359,25 +386,46 @@ func main() {
 	r.Run()
 }
 
-func canVote(groups []string) bool {
-	var active, fall_coop, spring_coop bool
-	for _, group := range groups {
-		if group == "active" {
-			active = true
-		}
-		if group == "fall_coop" {
-			fall_coop = true
-		}
-		if group == "spring_coop" {
-			spring_coop = true
+func canVote(username string) bool {
+	elligible := [...]string{
+		"hale",
+		"wilnil",
+		"nicwithac",
+		"mattyb",
+		"klaus",
+		"mcdade",
+		"boneless",
+		"nintendods",
+		"oliv",
+		"spencer",
+		"tommy",
+		"tex",
+		"sultanofswing",
+		"mtft",
+		"ethanf108",
+		"quinn",
+		"mstrodl",
+		"god",
+		"ninja",
+		"rachel",
+		"cinnamon",
+		"otto",
+		"bobbyd",
+		"shaun",
+		"skyz",
+		"princebishop",
+		"windows",
+		"evan",
+		"philup",
+		"cherry",
+		"mount",
+	}
+	for _, b := range elligible {
+		if b == username {
+			return true
 		}
 	}
-
-	if time.Now().Month() > time.July {
-		return active && !fall_coop
-	} else {
-		return active && !spring_coop
-	}
+	return false
 }
 
 func uniquePolls(polls []*database.Poll) []*database.Poll {

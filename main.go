@@ -423,6 +423,7 @@ func canVote(username string) bool {
 		"garousome",
 		"qwob",
 		"kbap",
+		"hayden",
 	}
 	for _, b := range elligible {
 		if b == username {

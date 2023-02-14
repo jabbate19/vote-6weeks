@@ -307,6 +307,11 @@ func main() {
 			return
 		}
 
+        if poll.Hidden && poll.CreatedBy != claims.UserInfo.Username {
+            c.JSON(403, gin.H{"error": "Result Hidden"})
+            return
+        }
+
 		results, err := poll.GetResult()
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
@@ -319,11 +324,63 @@ func main() {
 			"LongDescription":  poll.LongDescription,
 			"Results":          results,
 			"IsOpen":           poll.Open,
+            "IsHidden":         poll.Hidden,
 			"IsOwner":          poll.CreatedBy == claims.UserInfo.Username,
 			"Username":         claims.UserInfo.Username,
 			"FullName":         claims.UserInfo.FullName,
 		})
 	}))
+
+    r.POST("/poll/:id/hide", csh.AuthWrapper(func(c *gin.Context) {
+        cl, _ := c.Get("cshauth")
+        claims := cl.(csh_auth.CSHClaims)
+
+        poll, err := database.GetPoll(c.Param("id"))
+
+        if err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+
+        if poll.CreatedBy != claims.UserInfo.Username {
+            c.JSON(403, gin.H{"error": "Only the creator can hide a poll result"})
+            return
+        }
+
+        err = poll.Hide()
+        if err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+
+        c.Redirect(302, "/results/" + poll.Id)
+    }))
+
+
+    r.POST("/poll/:id/reveal", csh.AuthWrapper(func(c *gin.Context) {
+        cl, _ := c.Get("cshauth")
+        claims := cl.(csh_auth.CSHClaims)
+
+        poll, err := database.GetPoll(c.Param("id"))
+
+        if err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+
+        if poll.CreatedBy != claims.UserInfo.Username {
+            c.JSON(403, gin.H{"error": "Only the creator can reveal a poll result"})
+            return
+        }
+
+        err = poll.Reveal()
+        if err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+
+        c.Redirect(302, "/results/" + poll.Id)
+    }))
 
 	r.POST("/poll/:id/close", csh.AuthWrapper(func(c *gin.Context) {
 		cl, _ := c.Get("cshauth")

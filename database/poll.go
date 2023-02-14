@@ -52,6 +52,34 @@ func (poll *Poll) Close() error {
 	return nil
 }
 
+func (poll *Poll) Hide() error {
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	objId, _ := primitive.ObjectIDFromHex(poll.Id)
+
+	_, err := Client.Database("vote").Collection("polls").UpdateOne(ctx, map[string]interface{}{"_id": objId}, map[string]interface{}{"$set": map[string]interface{}{"hidden": true}})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (poll *Poll) Reveal() error {
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	objId, _ := primitive.ObjectIDFromHex(poll.Id)
+
+	_, err := Client.Database("vote").Collection("polls").UpdateOne(ctx, map[string]interface{}{"_id": objId}, map[string]interface{}{"$set": map[string]interface{}{"hidden": false}})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreatePoll(poll *Poll) (string, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
